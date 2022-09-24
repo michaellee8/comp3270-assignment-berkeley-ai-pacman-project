@@ -13,6 +13,9 @@ class Problem:
     state_transitions: Dict[str, Dict[str, float]] = field(default_factory=lambda: defaultdict(dict))
 
 
+QueenProblem = List[List[bool]]
+
+
 def read_graph_search_problem(file_path) -> Problem:
     ret = Problem()
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -35,9 +38,20 @@ def read_graph_search_problem(file_path) -> Problem:
     return ret
 
 
-def read_8queens_search_problem(file_path):
-    # Your p6 code here
-    problem = ''
+def read_8queens_search_problem(file_path) -> QueenProblem:
+    problem: QueenProblem = [[False for x in range(8)] for y in range(8)]
+    with open(file_path, 'r', encoding='utf-8') as f:
+        line_idx = 0
+        for line in f:
+            splits = line.strip().split(' ')
+            for split_idx in range(8):
+                if splits[split_idx] == '.':
+                    problem[line_idx][split_idx] = False
+                elif splits[split_idx] == 'q':
+                    problem[line_idx][split_idx] = True
+                else:
+                    logging.error(f'invalid line when parsing queen problem: {line}')
+            line_idx += 1
     return problem
 
 
