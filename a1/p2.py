@@ -1,9 +1,22 @@
-import sys, grader, parse
+import sys, grader
+from parse import Problem
+import parse
+from collections import deque
+from typing import List
 
-def bfs_search(problem):
-    #Your p2 code here
-    solution = 'Ar B C D\nAr C G'
-    return solution
+def bfs_search(problem: Problem) -> str:
+    qu = deque([[problem.start_state]])
+    exploration_order = [problem.start_state]
+    explored = {problem.start_state}
+    while qu:
+        next_path = qu.pop()
+        for end_state, cost in problem.state_transitions[next_path[-1]].items():
+            if end_state not in explored:
+                if end_state in problem.goal_state:
+                    return f"{' '.join(exploration_order)}\n{' '.join(next_path + [end_state])}"
+                qu.append(next_path + [end_state])
+                exploration_order.append(end_state)
+                explored.add(end_state)
 
 if __name__ == "__main__":
     test_case_id = int(sys.argv[1])

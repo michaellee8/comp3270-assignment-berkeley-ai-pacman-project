@@ -10,7 +10,7 @@ class Problem:
     start_state: str = field(default_factory=str)
     goal_state: Set[str] = field(default_factory=set)
     heuristic: Dict[str, float] = field(default_factory=dict)
-    state_transitions: Dict[str, Dict[str, float]] = field(default_factory=lambda _: defaultdict(default_factory=dict))
+    state_transitions: Dict[str, Dict[str, float]] = field(default_factory=lambda: defaultdict(dict))
 
 
 def read_graph_search_problem(file_path) -> Problem:
@@ -20,9 +20,10 @@ def read_graph_search_problem(file_path) -> Problem:
             splits = line.strip().split(' ')
             if splits[0] == 'goal_states:':
                 ret.goal_state = set(splits[1:])
+                continue
             elif len(splits) == 2:
-                if line[0] == 'start_state:':
-                    ret.start_state = line[1]
+                if splits[0] == 'start_state:':
+                    ret.start_state = splits[1]
                     continue
                 else:
                     ret.heuristic[splits[0]] = float(splits[1])
