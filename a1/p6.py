@@ -1,4 +1,8 @@
 import sys, parse, grader
+from parse import QueenProblem, QueenAnswer
+
+def compute_number_of_attacks(state: QueenProblem) -> int:
+
 
 def number_of_attacks(problem):
     #Your p6 code here
@@ -11,6 +15,7 @@ def number_of_attacks(problem):
 18 14 17 15 15 14 17 16
 14 14 13 17 12 14 12 18"""
     return solution
+
 
 if __name__ == "__main__":
     test_case_id = int(sys.argv[1])

@@ -14,6 +14,7 @@ class Problem:
 
 
 QueenProblem = List[List[bool]]
+QueenAnswer = List[List[int]]
 
 
 def read_graph_search_problem(file_path) -> Problem:
