@@ -6,7 +6,7 @@ from typing import List
 import heapq
 
 
-def greedy_search(problem):
+def greedy_search(problem: Problem):
     pq = []
     exploration_order = []
     exploration_order_added = set()
