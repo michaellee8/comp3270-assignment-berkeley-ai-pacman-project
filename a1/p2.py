@@ -14,7 +14,7 @@ def bfs_search(problem: Problem) -> str:
             if end_state not in explored:
                 if end_state in problem.goal_state:
                     return f"{' '.join(exploration_order)}\n{' '.join(next_path + [end_state])}"
-                qu.append(next_path + [end_state])
+                qu.appendleft(next_path + [end_state])
                 exploration_order.append(end_state)
                 explored.add(end_state)
 

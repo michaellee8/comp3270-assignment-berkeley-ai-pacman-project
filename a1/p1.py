@@ -11,14 +11,13 @@ def dfs_search(problem: Problem) -> str:
     explored = {problem.start_state}
     while qu:
         next_path = qu.pop()
-        if next_path[-1] in problem.goal_state:
-            return f"{' '.join(exploration_order)}\n{' '.join(next_path)}"
-        for end_state, cost in problem.state_transitions[next_path[-1]].items():
+        for end_state, cost in reversed(list(problem.state_transitions[next_path[-1]].items())):
             if end_state not in explored:
+                if end_state in problem.goal_state:
+                    return f"{' '.join(exploration_order)}\n{' '.join(next_path + [end_state])}"
                 qu.append(next_path + [end_state])
                 exploration_order.append(end_state)
                 explored.add(end_state)
-                break
 
 
 if __name__ == "__main__":
