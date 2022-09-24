@@ -7,6 +7,7 @@ from typing import List
 def dfs_search(problem: Problem) -> str:
     qu = deque([[problem.start_state]])
     exploration_order = [problem.start_state]
+    explored = {problem.start_state}
     while qu:
         next_path = qu.pop()
 
