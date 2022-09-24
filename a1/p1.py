@@ -6,18 +6,23 @@ from typing import List
 
 
 def dfs_search(problem: Problem) -> str:
-    qu = deque([[problem.start_state]])
+    qu = deque([problem.start_state])
     exploration_order = [problem.start_state]
     explored = {problem.start_state}
     while qu:
-        next_path = qu.pop()
-        for end_state, cost in reversed(list(problem.state_transitions[next_path[-1]].items())):
-            if end_state not in explored:
-                if end_state in problem.goal_state:
-                    return f"{' '.join(exploration_order)}\n{' '.join(next_path + [end_state])}"
-                qu.append(next_path + [end_state])
-                exploration_order.append(end_state)
-                explored.add(end_state)
+        next_node = qu[-1]
+        has_valid_child = False
+        for target, cost in reversed(list(problem.state_transitions[next_node].items())):
+            if target not in explored:
+                if target in problem.goal_state:
+                    return f"{' '.join(exploration_order)}\n{' '.join(list(qu) + [target])}"
+                has_valid_child = True
+                qu.append(target)
+                explored.add(target)
+                exploration_order.append(target)
+                break
+        if not has_valid_child:
+            qu.pop()
 
 
 if __name__ == "__main__":
