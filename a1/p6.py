@@ -1,26 +1,37 @@
 import sys, parse, grader
 from parse import QueenProblem, QueenAnswer
+from copy import deepcopy
+
 
 def compute_number_of_attacks(state: QueenProblem) -> int:
     num = 0
     for i, current_coordinate in enumerate(state):
-        for target_coordinate in state[i+1:]:
+        for target_coordinate in state[i + 1:]:
             if current_coordinate.col - target_coordinate.col == current_coordinate.row - target_coordinate.row:
                 num += 1
-            elif
+            elif current_coordinate.col + current_coordinate.row == target_coordinate.col + target_coordinate.row:
+                num += 1
+            elif current_coordinate.row == target_coordinate.row:
+                num += 1
+            elif current_coordinate.col == target_coordinate.col:
+                num += 1
+    return num
 
 
-def number_of_attacks(problem):
-    #Your p6 code here
-    solution = """18 12 14 13 13 12 14 14
-14 16 13 15 12 14 12 16
-14 12 18 13 15 12 14 14
-15 14 14 17 13 16 13 16
-17 14 17 15 17 14 16 16
-17 17 16 18 15 17 15 17
-18 14 17 15 15 14 17 16
-14 14 13 17 12 14 12 18"""
-    return solution
+def convert_queen_answer_to_string(qa: QueenAnswer) -> str:
+    return '\n'.join([' '.join(r) for r in qa])
+
+
+def number_of_attacks(problem: QueenProblem) -> str:
+    original_problem = deepcopy(problem)
+    ans: QueenAnswer = [[0 for i in range(8)] for j in range(8)]
+    for col_idx in range(8):
+        for row_idx in range(8):
+            problem[col_idx].row = row_idx
+            local_sol = compute_number_of_attacks(problem)
+            ans[row_idx][col_idx] = str(local_sol).rjust(2, ' ')
+        problem = deepcopy(original_problem)
+    return convert_queen_answer_to_string(ans)
 
 
 if __name__ == "__main__":
