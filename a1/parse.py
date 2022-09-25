@@ -13,7 +13,13 @@ class Problem:
     state_transitions: Dict[str, Dict[str, float]] = field(default_factory=lambda: defaultdict(dict))
 
 
-QueenProblem = List[List[bool]]
+@dataclass
+class QueenCoordinate:
+    col: int
+    row: int
+
+
+QueenProblem = List[QueenCoordinate]
 QueenAnswer = List[List[int]]
 
 
@@ -40,19 +46,20 @@ def read_graph_search_problem(file_path) -> Problem:
 
 
 def read_8queens_search_problem(file_path) -> QueenProblem:
-    problem: QueenProblem = [[False for x in range(8)] for y in range(8)]
+    problem: QueenProblem = []
     with open(file_path, 'r', encoding='utf-8') as f:
         line_idx = 0
         for line in f:
             splits = line.strip().split(' ')
             for split_idx in range(8):
                 if splits[split_idx] == '.':
-                    problem[line_idx][split_idx] = False
+                    pass
                 elif splits[split_idx] == 'q':
-                    problem[line_idx][split_idx] = True
+                    problem.append(QueenCoordinate(col=split_idx, row=line_idx))
                 else:
                     logging.error(f'invalid line when parsing queen problem: {line}')
             line_idx += 1
+    problem.sort(key=lambda c: c.col + c.row / 10.0)
     return problem
 
 

@@ -2,6 +2,12 @@ import sys, parse, grader
 from parse import QueenProblem, QueenAnswer
 
 def compute_number_of_attacks(state: QueenProblem) -> int:
+    num = 0
+    for i, current_coordinate in enumerate(state):
+        for target_coordinate in state[i+1:]:
+            if current_coordinate.col - target_coordinate.col == current_coordinate.row - target_coordinate.row:
+                num += 1
+            elif
 
 
 def number_of_attacks(problem):
