@@ -3,13 +3,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List
 
-
-class Character(Enum):
-    Wall = '%'
-    Ghost = 'W'
-    Pacman = 'P'
-    Food = '.'
-    Empty = ' '
+CHARACTER_WALL = '%'
+CHARACTER_GHOST = 'W'
+CHARACTER_PACMAN = 'P'
+CHARACTER_FOOD = '.'
+CHARACTER_EMPTY = ' '
 
 
 @dataclass
@@ -17,7 +15,7 @@ class Problem:
     seed: int = 0
     width: int = 0
     height: int = 0
-    board: List[List[Character]] = field(default_factory=list)
+    board: List[List[str]] = field(default_factory=list)
 
     def __repr__(self) -> str:
         ret = ''
@@ -26,18 +24,16 @@ class Problem:
         ret += f"height: {self.height}\n"
         ret += f"board:\n"
         ret += '\n'.join([''.join(line) for line in self.board])
+        return ret
 
-
-def input_text_to_character(t: str) -> Character:
-    if t == '%':
-        return Character.Wall
-    if t == 'W':
-        return Character.Ghost
-    if t == 'P':
-        return Character.Pacman
-    if t == '.':
-        return Character.Food
-    return Character.Empty
+    def __str__(self):
+        ret = ''
+        ret += f"seed: {self.seed}\n"
+        ret += f"width: {self.width}\n"
+        ret += f"height: {self.height}\n"
+        ret += f"board:\n"
+        ret += '\n'.join([''.join(line) for line in self.board])
+        return ret
 
 
 def read_layout_problem(file_path: str) -> Problem:
@@ -47,8 +43,8 @@ def read_layout_problem(file_path: str) -> Problem:
         ret.seed = int(first_line.split(' ')[1])
         ret.board = [
             [
-                input_text_to_character(c)
-                for c in line.strip().split()
+                c
+                for c in list(line.strip())
             ]
             for line in f
         ]
