@@ -1,13 +1,18 @@
+import copy
 import os, sys
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
+from typing import List, Dict
 
 CHARACTER_WALL = '%'
 CHARACTER_GHOST = 'W'
 CHARACTER_PACMAN = 'P'
 CHARACTER_FOOD = '.'
 CHARACTER_EMPTY = ' '
+
+
+class LoopLabel(Exception):
+    pass
 
 
 @dataclass
@@ -34,6 +39,17 @@ class Problem:
         ret += f"board:\n"
         ret += '\n'.join([''.join(line) for line in self.board])
         return ret
+
+
+def board_to_str(board: List[List[str]]) -> str:
+    return '\n'.join([''.join(line) for line in board])
+
+
+def board_to_str_with_characters(board: List[List[str]], c_pos: Dict[str, List[int]]) -> str:
+    b = copy.deepcopy(board)
+    for c, pos in c_pos.items():
+        b[pos[0]][pos[1]] = c
+    return board_to_str(b)
 
 
 def read_layout_problem(file_path: str) -> Problem:
