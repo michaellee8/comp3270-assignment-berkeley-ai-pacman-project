@@ -149,7 +149,7 @@ class GameBoard:
     def set_pos_for_character(self, ch: str, pos: Tuple[int, int]):
         if ch == 'P':
             self.player_position = pos
-        gh_idx = self.ghost_names.index(gh)
+        gh_idx = self.ghost_names.index(ch)
         self.ghost_positions[gh_idx] = pos
 
     def is_wall(self, pos: Tuple[int, int]) -> bool:
