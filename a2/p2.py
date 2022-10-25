@@ -1,11 +1,11 @@
 import random
-import sys
 import parse
 import time
 import os
 import copy
 from parse import Problem, GameBoard
 from typing import Tuple
+import sys
 
 
 def calculate_score(gm: GameBoard) -> int:
@@ -13,20 +13,22 @@ def calculate_score(gm: GameBoard) -> int:
     s = gm.score_final() * 50
 
     player_r, player_c = gm.player_position
-    distances_to_food = [abs(player_r - food_r) + abs(player_c - food_c) for food_r, food_c in gm.food_positions()]
-    if len(distances_to_food) == 0:
-        # No food, we won
-        distances_to_food = [-10000]
-    min_distance_to_food = min(distances_to_food)
+    min_distance_to_food = gm.player_min_distance_to_food()
     distances_to_ghost = [abs(player_r - ghost_r) + abs(player_c - ghost_c) for ghost_r, ghost_c in gm.ghost_positions]
     min_distance_to_ghost = min(distances_to_ghost)
 
     s += min_distance_to_ghost - min_distance_to_food
 
+    if gm.game_ended() and gm.player_eaten:
+        # prevent being eaten at all cost
+        s -= sys.maxsize // 2
+
     return s
 
 
 def better_play_single_ghosts(problem: Problem) -> Tuple[str, str]:
+    # It will take some time to run but in complex cases but given any modern CPU it
+    # will stop in 5 minutes.
     solution = ''
     random.seed(problem.seed, version=1)
 

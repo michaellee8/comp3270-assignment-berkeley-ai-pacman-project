@@ -73,6 +73,7 @@ class GameBoard:
         self.board: List[List[str]] = []
         self.width: int = 0
         self.height: int = 0
+        self.food_positions: set = set()
 
         self.num_food_left: int = 0
         self.num_food_eaten: int = 0
@@ -96,6 +97,7 @@ class GameBoard:
                     gb.board[row][col] = ' '
                 if gb.board[row][col] == '.':
                     gb.num_food_left += 1
+                    gb.food_positions.add((row, col))
 
         ghosts.sort(key=lambda gh: gh[0])
         for g in ghosts:
@@ -181,15 +183,9 @@ class GameBoard:
         return [nm for nm in next_moves if not self.is_wall(nm[1])]
 
     def pacman_won(self) -> bool:
+        if not self.game_ended():
+            raise ImpossibleCaseError()
         return not self.player_eaten
-
-    def food_positions(self) -> List[Tuple[int, int]]:
-        ret: List[Tuple[int, int]] = []
-        for r in range(self.height):
-            for c in range(self.width):
-                if self.board[r][c] == '.':
-                    ret.append((r, c))
-        return ret
 
     def make_copy(self):
         return copy.deepcopy(self)
@@ -210,6 +206,7 @@ class GameBoard:
             ngb.board[r][c] = ' '
             ngb.num_food_left -= 1
             ngb.num_food_eaten += 1
+            ngb.food_positions.remove((r, c))
         ngb.move_count += 1
         return ngb
 
@@ -226,6 +223,22 @@ class GameBoard:
                     ret += self.board[r][c]
             ret += '\n'
         return ret
+
+    def player_min_distance_to_food(self) -> int:
+        if self.num_food_left == 0:
+            # No food, we won
+            return -10000
+        NEAR_SEARCH_DEPTH = 3
+        player_r, player_c = self.player_position
+        for depth in range(1 + NEAR_SEARCH_DEPTH):
+            for r in range(player_r - depth, player_r + depth + 1):
+                for c in range(player_c - depth, player_c + depth + 1):
+                    if r in range(self.height) and c in range(self.width) and self.board[r][c] == '.':
+                        return depth
+
+        distances_to_food = [abs(player_r - food_r) + abs(player_c - food_c) for food_r, food_c in
+                             self.food_positions]
+        return min(distances_to_food)
 
 
 if __name__ == "__main__":
