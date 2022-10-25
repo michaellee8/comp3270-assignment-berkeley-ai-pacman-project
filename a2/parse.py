@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass, field
-from typing import List, Dict, Tuple
+from typing import List, Tuple
 import copy
 
 
@@ -39,17 +39,6 @@ class Problem:
         ret += f"board:\n"
         ret += '\n'.join([''.join(line) for line in self.board])
         return ret
-
-
-def board_to_str(board: List[List[str]]) -> str:
-    return '\n'.join([''.join(line) for line in board])
-
-
-def board_to_str_with_characters(board: List[List[str]], c_pos: Dict[str, List[int]]) -> str:
-    b = copy.deepcopy(board)
-    for c, pos in c_pos.items():
-        b[pos[0]][pos[1]] = c
-    return board_to_str(b)
 
 
 def read_layout_problem(file_path: str) -> Problem:
@@ -125,11 +114,11 @@ class GameBoard:
         return ret
 
     def score_without_end(self) -> int:
-        return self.player_steps_taken() * GameBoard.PACMAN_MOVING_SCORE + self.num_food_eaten * GameBoard.PACMAN_EATEN_SCORE
+        return self.player_steps_taken() * GameBoard.PACMAN_MOVING_SCORE + self.num_food_eaten * GameBoard.EAT_FOOD_SCORE
 
     def score_final(self) -> int:
         s = self.score_without_end()
-        if self.game_ended():
+        if not self.game_ended():
             return s
         if self.player_eaten:
             return s + GameBoard.PACMAN_EATEN_SCORE
@@ -138,7 +127,7 @@ class GameBoard:
         raise ImpossibleCaseError
 
     def next_move_character(self) -> str:
-        return (['P'] + self.ghost_names)[(self.move_count + 1) % (1 + len(self.ghost_names))]
+        return (['P'] + self.ghost_names)[self.move_count % (1 + len(self.ghost_names))]
 
     def get_pos_for_character(self, ch: str) -> Tuple[int, int]:
         if ch == 'P':
@@ -149,6 +138,7 @@ class GameBoard:
     def set_pos_for_character(self, ch: str, pos: Tuple[int, int]):
         if ch == 'P':
             self.player_position = pos
+            return
         gh_idx = self.ghost_names.index(ch)
         self.ghost_positions[gh_idx] = pos
 
@@ -190,6 +180,9 @@ class GameBoard:
         next_moves = GameBoard.compute_next_moves(next_character_pos)
         return [nm for nm in next_moves if not self.is_wall(nm[1])]
 
+    def pacman_won(self) -> bool:
+        return not self.player_eaten
+
     def make_copy(self):
         return copy.deepcopy(self)
 
@@ -206,9 +199,10 @@ class GameBoard:
             ngb.player_eaten = True
         elif self.is_food(ngb.player_position):
             r, c = ngb.player_position
-            self.board[r][c] = ' '
+            ngb.board[r][c] = ' '
             ngb.num_food_left -= 1
             ngb.num_food_eaten += 1
+        ngb.move_count += 1
         return ngb
 
     def to_string_board(self) -> str:
