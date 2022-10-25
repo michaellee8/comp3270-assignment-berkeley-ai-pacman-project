@@ -11,6 +11,10 @@ class LoopLabel(Exception):
     pass
 
 
+class ImpossibleCaseError(Exception):
+    pass
+
+
 @dataclass
 class Problem:
     seed: int = 0
@@ -108,6 +112,10 @@ class GameBoard:
         for g in ghosts:
             gb.ghost_names.append(g[0])
             gb.ghost_positions.append((g[1], g[2]))
+
+        gb.width = prob.width
+        gb.height = prob.height
+        gb.seed = prob.seed
         return gb
 
     def player_steps_taken(self) -> int:
@@ -121,6 +129,13 @@ class GameBoard:
 
     def score_final(self) -> int:
         s = self.score_without_end()
+        if self.game_ended():
+            return s
+        if self.player_eaten:
+            return s + GameBoard.PACMAN_EATEN_SCORE
+        if self.num_food_left == 0:
+            return s + GameBoard.PACMAN_WIN_SCORE
+        raise ImpossibleCaseError
 
     def next_move_character(self) -> str:
         return (['P'] + self.ghost_names)[(self.move_count + 1) % (1 + len(self.ghost_names))]
@@ -131,9 +146,19 @@ class GameBoard:
         gh_idx = self.ghost_names.index(ch)
         return self.ghost_positions[gh_idx]
 
+    def set_pos_for_character(self, ch: str, pos: Tuple[int, int]):
+        if ch == 'P':
+            self.player_position = pos
+        gh_idx = self.ghost_names.index(gh)
+        self.ghost_positions[gh_idx] = pos
+
     def is_wall(self, pos: Tuple[int, int]) -> bool:
         r, c = pos
         return self.board[r][c] == '%'
+
+    def is_food(self, pos: Tuple[int, int]) -> bool:
+        r, c = pos
+        return self.board[r][c] == '.'
 
     @staticmethod
     def compute_next_moves(pos: Tuple[int, int]) -> List[Tuple[str, Tuple[int, int]]]:
@@ -167,6 +192,24 @@ class GameBoard:
 
     def make_copy(self):
         return copy.deepcopy(self)
+
+    def execute_move(self, character: str, direction: str) -> GameBoard:
+        ngb = self.make_copy()
+        if ngb.next_move_character() != character:
+            raise ValueError()
+        if ngb.game_ended():
+            raise ImpossibleCaseError()
+        _, next_pos = [nm for nm in ngb.get_possible_next_moves() if nm[0] == direction][0]
+        ngb.set_pos_for_character(character, next_pos)
+        if ngb.player_position in ngb.ghost_positions:
+            # pacman eaten
+            ngb.player_eaten = True
+        elif self.is_food(ngb.player_position):
+            r, c = ngb.player_position
+            self.board[r][c] = ' '
+            ngb.num_food_left -= 1
+            ngb.num_food_eaten += 1
+        return ngb
 
 
 if __name__ == "__main__":
