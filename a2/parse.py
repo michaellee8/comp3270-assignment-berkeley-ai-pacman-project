@@ -183,6 +183,14 @@ class GameBoard:
     def pacman_won(self) -> bool:
         return not self.player_eaten
 
+    def food_positions(self) -> List[Tuple[int, int]]:
+        ret: List[Tuple[int, int]] = []
+        for r in range(self.height):
+            for c in range(self.width):
+                if self.board[r][c] == '.':
+                    ret.append((r, c))
+        return ret
+
     def make_copy(self):
         return copy.deepcopy(self)
 
