@@ -180,7 +180,8 @@ class GameBoard:
         next_character = self.next_move_character()
         next_character_pos = self.get_pos_for_character(next_character)
         next_moves = GameBoard.compute_next_moves(next_character_pos)
-        return [nm for nm in next_moves if not self.is_wall(nm[1])]
+        return [nm for nm in next_moves if
+                not self.is_wall(nm[1]) and (next_character == 'P' or nm[1] not in self.ghost_positions)]
 
     def pacman_won(self) -> bool:
         if not self.game_ended():
