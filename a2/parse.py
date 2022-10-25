@@ -53,6 +53,8 @@ def read_layout_problem(file_path: str) -> Problem:
             ]
             for line in f
         ]
+        max_line_length = max([len(line) for line in ret.board])
+        ret.board = [line + [' '] * (max_line_length - len(line)) for line in ret.board]
         ret.height = len(ret.board)
         ret.width = len(ret.board[0])
     return ret
