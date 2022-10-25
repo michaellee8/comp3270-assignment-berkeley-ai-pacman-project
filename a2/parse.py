@@ -211,6 +211,20 @@ class GameBoard:
             ngb.num_food_eaten += 1
         return ngb
 
+    def to_string_board(self) -> str:
+        ret = ''
+        for r in range(self.height):
+            for c in range(self.width):
+                if self.player_position == (r, c) and not self.player_eaten:
+                    ret += 'P'
+                elif (r, c) in self.ghost_positions:
+                    gh_idx = self.ghost_positions.index((r, c))
+                    ret += self.ghost_names[gh_idx]
+                else:
+                    ret += self.board[r][c]
+            ret += '\n'
+        return ret
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:
