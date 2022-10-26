@@ -256,13 +256,13 @@ class GameBoard:
         if self.num_food_left() == 0:
             # No food, we won
             return -10000
-        NEAR_SEARCH_DEPTH = 1
+        # NEAR_SEARCH_DEPTH = 1
         player_r, player_c = self.player_position
-        for depth in range(1 + NEAR_SEARCH_DEPTH):
-            for r in range(player_r - depth, player_r + depth + 1):
-                for c in range(player_c - depth, player_c + depth + 1):
-                    if r in range(self.height) and c in range(self.width) and self.is_food((r, c)) == '.':
-                        return depth
+        # for depth in range(1 + NEAR_SEARCH_DEPTH):
+        #     for r in range(player_r - depth, player_r + depth + 1):
+        #         for c in range(player_c - depth, player_c + depth + 1):
+        #             if r in range(self.height) and c in range(self.width) and self.is_food((r, c)) == '.':
+        #                 return depth
 
         distances_to_food = [abs(player_r - food_r) + abs(player_c - food_c) for food_r, food_c in
                              self.food_positions]

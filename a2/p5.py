@@ -8,13 +8,14 @@ from parse import Problem, GameBoard, ImpossibleCaseError
 from typing import Tuple, Union
 
 # THis number should be large enough
-INF = sys.maxsize // 2
+INF = sys.maxsize << 5
 
 
 def calculate_pacman_score(gm: GameBoard) -> int:
     if gm.game_ended():
         if gm.player_eaten:
-            return gm.score_final() * 50 - sys.maxsize // 2
+            # return gm.score_final() * 50 - INF << 15
+            return gm.score_final() * 50
         else:
             return gm.score_final() * 50
 
@@ -29,15 +30,16 @@ def calculate_pacman_score(gm: GameBoard) -> int:
     # s += min_distance_to_ghost - min_distance_to_food
 
     sum_distance_to_ghost = sum(distances_to_ghost)
-    s += sum_distance_to_ghost - min_distance_to_food
+    s += sum_distance_to_ghost - 4 * min_distance_to_food
 
-    if gm.game_ended() and gm.player_eaten:
-        # prevent being eaten at all cost
-        s -= INF // 16
+    # if gm.game_ended() and gm.player_eaten:
+    #     # prevent being eaten at all cost
+    #     s -= INF // 16
 
     return s
 
 
+# Not used currently
 def calculate_ghost_score(gm: GameBoard, ch: str) -> int:
     if gm.game_ended():
         if gm.player_eaten:
