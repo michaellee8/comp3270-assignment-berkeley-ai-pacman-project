@@ -1,15 +1,139 @@
+import random
 import sys
 import parse
 import time
 import os
 import copy
+from parse import Problem, GameBoard, ImpossibleCaseError
+from typing import Tuple, Union
+
+# THis number should be large enough
+INF = sys.maxsize // 2
 
 
-def min_max_mulitple_ghosts(problem, k):
-    # Your p5 code here
+def calculate_pacman_score(gm: GameBoard) -> int:
+    if gm.game_ended():
+        if gm.player_eaten:
+            return gm.score_final() * 50 - sys.maxsize // 2
+        else:
+            return gm.score_final() * 50
+
+    # Prioritize game goals
+    s = gm.score_final() * 50
+
+    player_r, player_c = gm.player_position
+    min_distance_to_food = gm.player_min_distance_to_food()
+    distances_to_ghost = [abs(player_r - ghost_r) + abs(player_c - ghost_c) for ghost_r, ghost_c in gm.ghost_positions]
+    # min_distance_to_ghost = min(distances_to_ghost)
+    #
+    # s += min_distance_to_ghost - min_distance_to_food
+
+    sum_distance_to_ghost = sum(distances_to_ghost)
+    s += sum_distance_to_ghost - min_distance_to_food
+
+    if gm.game_ended() and gm.player_eaten:
+        # prevent being eaten at all cost
+        s -= INF // 16
+
+    return s
+
+
+def calculate_ghost_score(gm: GameBoard, ch: str) -> int:
+    if gm.game_ended():
+        if gm.player_eaten:
+            return gm.score_final() * 50 - sys.maxsize // 2
+        else:
+            return gm.score_final() * 50
+
+    # Prioritize game goals
+    s = gm.score_final() * 50
+
+    player_r, player_c = gm.player_position
+    ghost_r, ghost_c = gm.get_pos_for_character(ch)
+    distance_to_ghost = abs(player_r - ghost_r) + abs(player_c - ghost_c)
+
+    s += distance_to_ghost
+
+    if gm.game_ended() and gm.player_eaten:
+        # prevent being eaten at all cost
+        s -= sys.maxsize // 2
+
+    return s
+
+
+def alpha_beta_search(gm: GameBoard, depth: int, a: int, b: int) -> Tuple[int, Union[str, None]]:
+    if depth == 0 or gm.game_ended():
+        return calculate_pacman_score(gm), None
+    next_character = gm.next_move_character()
+    if next_character not in ['W', 'X', 'Y', 'Z'] and next_character in ['P']:
+        # maximizing player
+        v = -INF
+        ret_move = None
+        for direction, _ in gm.get_possible_next_moves():
+            v2, direction2 = alpha_beta_search(
+                gm.execute_move(next_character, direction),
+                depth - 1,
+                a,
+                b
+            )
+            if v2 > v:
+                v, ret_move = v2, direction
+                a = max(a, v)
+            if v >= b:
+                return v, ret_move
+        return v, ret_move
+    elif next_character in ['W', 'X', 'Y', 'Z'] and next_character not in ['P']:
+        # minimizing player
+        v = +INF
+        ret_move = None
+        for direction, _ in gm.get_possible_next_moves():
+            v2, direction2 = alpha_beta_search(
+                gm.execute_move(next_character, direction),
+                depth - 1,
+                a,
+                b
+            )
+            if v2 < v:
+                v, ret_move = v2, direction
+                b = min(b, v)
+            if v <= a:
+                return v, ret_move
+        return v, ret_move
+    else:
+        raise ImpossibleCaseError()
+
+
+def min_max_mulitple_ghosts(problem: Problem, k: int) -> Tuple[str, str]:
     solution = ''
-    winner = ''
-    return solution, winner
+    random.seed(problem.seed, version=1)
+
+    gm = GameBoard.from_problem(problem)
+
+    solution += f"seed: {gm.seed}\n"
+    solution += f"{gm.move_count}\n"
+    solution += gm.to_string_board()
+
+    depth = k * (len(gm.ghost_names) + 1)
+
+    while True:
+        moving_character = gm.next_move_character()
+        _, picked_direction = alpha_beta_search(gm, depth, -INF, +INF)
+        if picked_direction:
+            gm = gm.execute_move(moving_character, picked_direction)
+        else:
+            gm.move_count += 1
+        solution += f"{gm.move_count}: {moving_character} moving {picked_direction}\n"
+        solution += gm.to_string_board()
+        solution += f"score: {gm.score_final()}\n"
+
+        if gm.game_ended():
+            if gm.pacman_won():
+                solution += "WIN: Pacman"
+            else:
+                solution += "WIN: Ghost"
+            break
+
+    return solution, 'Pacman' if gm.pacman_won() else 'Ghost'
 
 
 if __name__ == "__main__":

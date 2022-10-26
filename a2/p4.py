@@ -9,6 +9,12 @@ import sys
 
 
 def calculate_score(gm: GameBoard) -> int:
+    if gm.game_ended():
+        if gm.player_eaten:
+            return gm.score_final() * 50 - sys.maxsize // 2
+        else:
+            return gm.score_final() * 50
+
     # Prioritize game goals
     s = gm.score_final() * 50
 
