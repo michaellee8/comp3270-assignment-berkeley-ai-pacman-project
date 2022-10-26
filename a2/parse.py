@@ -3,8 +3,10 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass, field
-from typing import List, Tuple
-import copy
+from typing import List, Tuple, Set, FrozenSet, Optional
+
+# row, col
+Coordinate = Tuple[int, int]
 
 
 class LoopLabel(Exception):
@@ -68,38 +70,47 @@ class GameBoard:
 
     def __init__(self):
         self.ghost_names: List[str] = []
-        self.ghost_positions: List[Tuple[int, int]] = []
-        self.player_position: Tuple[int, int] = (0, 0)
+        self.ghost_positions: List[Coordinate] = []
+        self.player_position: Coordinate = (0, 0)
         self.move_count: int = 0
         self.seed: int = 0
-        self.board: List[List[str]] = []
         self.width: int = 0
         self.height: int = 0
-        self.food_positions: set = set()
+        self.food_positions: Set[Coordinate] = set()
 
-        self.num_food_left: int = 0
-        self.num_food_eaten: int = 0
+        # Wall positions never change throughout the game
+        self.wall_positions: FrozenSet[Coordinate] = frozenset()
+
+        self.num_food_original: int = 0
         self.player_eaten: bool = False
 
+    def num_food_left(self) -> int:
+        return len(self.food_positions)
+
+    def num_food_eaten(self) -> int:
+        return self.num_food_original - self.num_food_left()
+
     def game_ended(self):
-        return self.num_food_left == 0 or self.player_eaten
+        return self.num_food_left() == 0 or self.player_eaten
 
     @staticmethod
     def from_problem(prob: Problem) -> GameBoard:
         gb = GameBoard()
-        gb.board = copy.deepcopy(prob.board)
         ghosts: List[Tuple[str, int, int]] = []
+        walls: List[Coordinate] = []
         for row in range(prob.height):
             for col in range(prob.width):
-                if gb.board[row][col] == 'P':
+                if prob.board[row][col] == 'P':
                     gb.player_position = (row, col)
-                    gb.board[row][col] = ' '
-                if gb.board[row][col] in ['W', 'X', 'Y', 'Z']:
-                    ghosts.append((gb.board[row][col], row, col))
-                    gb.board[row][col] = ' '
-                if gb.board[row][col] == '.':
-                    gb.num_food_left += 1
+                if prob.board[row][col] in ['W', 'X', 'Y', 'Z']:
+                    ghosts.append((prob.board[row][col], row, col))
+                if prob.board[row][col] == '.':
+                    gb.num_food_original += 1
                     gb.food_positions.add((row, col))
+                if prob.board[row][col] == '%':
+                    walls.append((row, col))
+
+        gb.wall_positions = frozenset(walls)
 
         ghosts.sort(key=lambda gh: gh[0])
         for g in ghosts:
@@ -118,7 +129,7 @@ class GameBoard:
         return ret
 
     def score_without_end(self) -> int:
-        return self.player_steps_taken() * GameBoard.PACMAN_MOVING_SCORE + self.num_food_eaten * GameBoard.EAT_FOOD_SCORE
+        return self.player_steps_taken() * GameBoard.PACMAN_MOVING_SCORE + self.num_food_eaten() * GameBoard.EAT_FOOD_SCORE
 
     def score_final(self) -> int:
         s = self.score_without_end()
@@ -126,7 +137,7 @@ class GameBoard:
             return s
         if self.player_eaten:
             return s + GameBoard.PACMAN_EATEN_SCORE
-        if self.num_food_left == 0:
+        if self.num_food_left() == 0:
             return s + GameBoard.PACMAN_WIN_SCORE
         raise ImpossibleCaseError
 
@@ -146,13 +157,23 @@ class GameBoard:
         gh_idx = self.ghost_names.index(ch)
         self.ghost_positions[gh_idx] = pos
 
+    def get_cell_in_pos(self, pos: Coordinate) -> str:
+        if pos == self.player_position and not self.player_eaten:
+            return 'P'
+        if pos in self.ghost_positions:
+            gh_idx = self.ghost_positions.index(pos)
+            return self.ghost_names[gh_idx]
+        if pos in self.food_positions:
+            return '.'
+        if pos in self.wall_positions:
+            return '%'
+        return ' '
+
     def is_wall(self, pos: Tuple[int, int]) -> bool:
-        r, c = pos
-        return self.board[r][c] == '%'
+        return pos in self.wall_positions
 
     def is_food(self, pos: Tuple[int, int]) -> bool:
-        r, c = pos
-        return self.board[r][c] == '.'
+        return pos in self.food_positions
 
     @staticmethod
     def compute_next_moves(pos: Tuple[int, int]) -> List[Tuple[str, Tuple[int, int]]]:
@@ -190,26 +211,36 @@ class GameBoard:
             raise ImpossibleCaseError()
         return not self.player_eaten
 
-    def make_copy(self):
-        return copy.deepcopy(self)
+    def make_copy(self) -> GameBoard:
+        ngb = GameBoard()
+        ngb.ghost_names = self.ghost_names.copy()
+        ngb.ghost_positions = self.ghost_positions.copy()
+        ngb.player_position = self.player_position
+        ngb.move_count = self.move_count
+        ngb.seed = self.seed
+        ngb.width = self.width
+        ngb.height = self.height
+        ngb.food_positions = self.food_positions.copy()
+        ngb.wall_positions = self.wall_positions
+        ngb.num_food_original = self.num_food_original
+        ngb.player_eaten = self.player_eaten
+        return ngb
 
-    def execute_move(self, character: str, direction: str) -> GameBoard:
+    def execute_move(self, character: str, direction: Optional[str]) -> GameBoard:
         ngb = self.make_copy()
         if ngb.next_move_character() != character:
             raise ValueError()
         if ngb.game_ended():
             raise ImpossibleCaseError()
-        _, next_pos = [nm for nm in ngb.get_possible_next_moves() if nm[0] == direction][0]
-        ngb.set_pos_for_character(character, next_pos)
-        if ngb.player_position in ngb.ghost_positions:
-            # pacman eaten
-            ngb.player_eaten = True
-        elif self.is_food(ngb.player_position):
-            r, c = ngb.player_position
-            ngb.board[r][c] = ' '
-            ngb.num_food_left -= 1
-            ngb.num_food_eaten += 1
-            ngb.food_positions.remove((r, c))
+        if direction is not None:
+            _, next_pos = [nm for nm in ngb.get_possible_next_moves() if nm[0] == direction][0]
+            ngb.set_pos_for_character(character, next_pos)
+            if ngb.player_position in ngb.ghost_positions:
+                # pacman eaten
+                ngb.player_eaten = True
+            elif self.is_food(ngb.player_position):
+                ngb.food_positions.remove(ngb.player_position)
+        # if direction is None, it means the move is skipped
         ngb.move_count += 1
         return ngb
 
@@ -217,26 +248,20 @@ class GameBoard:
         ret = ''
         for r in range(self.height):
             for c in range(self.width):
-                if self.player_position == (r, c) and not self.player_eaten:
-                    ret += 'P'
-                elif (r, c) in self.ghost_positions:
-                    gh_idx = self.ghost_positions.index((r, c))
-                    ret += self.ghost_names[gh_idx]
-                else:
-                    ret += self.board[r][c]
+                ret += self.get_cell_in_pos((r, c))
             ret += '\n'
         return ret
 
     def player_min_distance_to_food(self) -> int:
-        if self.num_food_left == 0:
+        if self.num_food_left() == 0:
             # No food, we won
             return -10000
-        NEAR_SEARCH_DEPTH = 3
+        NEAR_SEARCH_DEPTH = 1
         player_r, player_c = self.player_position
         for depth in range(1 + NEAR_SEARCH_DEPTH):
             for r in range(player_r - depth, player_r + depth + 1):
                 for c in range(player_c - depth, player_c + depth + 1):
-                    if r in range(self.height) and c in range(self.width) and self.board[r][c] == '.':
+                    if r in range(self.height) and c in range(self.width) and self.is_food((r, c)) == '.':
                         return depth
 
         distances_to_food = [abs(player_r - food_r) + abs(player_c - food_c) for food_r, food_c in

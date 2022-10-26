@@ -33,8 +33,6 @@ def calculate_score(gm: GameBoard) -> int:
 
 
 def better_play_mulitple_ghosts(problem: Problem) -> Tuple[str, str]:
-    # It will take some time to run but in complex cases but given any modern CPU it
-    # will stop in 5 minutes.
     solution = ''
     random.seed(problem.seed, version=1)
 

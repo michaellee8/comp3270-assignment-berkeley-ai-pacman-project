@@ -21,11 +21,9 @@ def random_play_multiple_ghosts(problem: Problem) -> str:
         possible_directions = [nm[0] for nm in possible_moves]
         if possible_directions:
             picked_direction = random.choice(possible_directions)
-            gm = gm.execute_move(moving_character, picked_direction)
         else:
-            picked_direction = ''
-            gm = gm.make_copy()
-            gm.move_count += 1
+            picked_direction = None
+        gm = gm.execute_move(moving_character, picked_direction)
         solution += f"{gm.move_count}: {moving_character} moving {picked_direction}\n"
         solution += gm.to_string_board()
         solution += f"score: {gm.score_final()}\n"
