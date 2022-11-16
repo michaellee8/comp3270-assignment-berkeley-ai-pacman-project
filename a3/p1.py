@@ -63,7 +63,7 @@ def play_episode(problem: Problem) -> str:
     if problem.seed != -1:
         random.seed(problem.seed, version=1)
     while True:
-        experience += '--------------------------------------------\n'
+        experience += '-------------------------------------------- \n'
         old_pos_r, old_pos_c = player_pos
         intended_dir = problem.policy[old_pos_r][old_pos_c]
         if intended_dir == 'exit':
@@ -72,16 +72,16 @@ def play_episode(problem: Problem) -> str:
             if grid[old_pos_r][old_pos_c] == '1':
                 exit_reward = 1.0
             elif grid[old_pos_r][old_pos_c] == '-1':
-                exit_reward = 1.0
+                exit_reward = -1.0
             reward_sum += exit_reward
             experience += f'Reward received: {exit_reward}\n'
             experience += 'New state:\n'
             experience += parse.grid_to_str(grid)
             experience += '\n'
-            experience += f"Cumulative reward sum: {reward_sum:.2}\n"
+            experience += f"Cumulative reward sum: {round(reward_sum,2)}"
             break
         actual_dir = get_dir_from_intended(intended_dir, problem.noise)
-        step_reward = -0.05
+        step_reward = problem.living_reward
         reward_sum += step_reward
         player_pos = execute_dir(grid, player_pos, actual_dir)
         experience += f"Taking action: {actual_dir} (intended: {intended_dir})\n"
@@ -89,7 +89,7 @@ def play_episode(problem: Problem) -> str:
         experience += 'New state:\n'
         experience += parse.grid_to_str_with_player_pos(grid, player_pos)
         experience += '\n'
-        experience += f"Cumulative reward sum: {reward_sum:.2}\n"
+        experience += f"Cumulative reward sum: {round(reward_sum,2)}\n"
 
     return experience
 
