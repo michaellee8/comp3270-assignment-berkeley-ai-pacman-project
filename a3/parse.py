@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Tuple
 from dataclasses import dataclass, field
 
 
@@ -78,3 +78,21 @@ def read_grid_mdp_problem_p3(file_path: str) -> Problem:
     ret = parse_problem(file_path)
     ret.type = 'p3'
     return ret
+
+
+def grid_to_str(b: List[List[str]]) -> str:
+    return '\n'.join([''.join([e.rjust(5, ' ') for e in row]) for row in b])
+
+
+def grid_to_str_with_player_pos(b: List[List[str]], pos: Tuple[int, int]) -> str:
+    cb = [[e for e in row] for row in b]
+    cb[pos[0]][pos[1]] = 'P'
+    return '\n'.join([''.join([e.rjust(5, ' ') for e in row]) for row in cb])
+
+
+def value_to_str(b: List[List[float]]) -> str:
+    return '\n'.join([''.join([f"|{str(e).rjust(7, ' ')}|" for e in row]) for row in b])
+
+
+def dir_to_str(b: List[List[str]]) -> str:
+    return '\n'.join([''.join([f"|{e.rjust(3, ' ')}|" for e in row]) for row in b])
