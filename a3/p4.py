@@ -2,6 +2,8 @@ import sys, grader, parse
 
 from parse import Problem
 from typing import Tuple, List, Dict, TypeVar
+import random
+from copy import deepcopy
 
 
 def is_float(element: any) -> bool:
@@ -61,8 +63,23 @@ def get_intended_dir_to_actual_dir_prob_dict(intended_dir: str, noise: float) ->
     return ret
 
 
+def get_dir_from_intended(d: str, n: float) -> str:
+    dm = {'N': ['N', 'E', 'W'], 'E': ['E', 'S', 'N'], 'S': ['S', 'W', 'E'], 'W': ['W', 'N', 'S']}
+    return random.choices(population=dm[d], weights=[1 - n * 2, n, n])[0]
+
+
 def main():
     problem = parse.parse_problem('test_cases/p3/2.prob')
+    possible_directions = ['N', 'S', 'W', 'E']
+    n_rows = len(problem.grid)
+    n_cols = len(problem.grid[0])
+    grid = [[e for e in row] for row in problem.grid]
+    q_values = [[{'N': 0.0, 'S': 0.0, 'W': 0.0, 'E': 0.0} for e in row] for row in grid]
+    decay_factor = 0.5
+    while True:
+        new_q_values = deepcopy(q_values)
+        while True:
+
 
 
 if __name__ == '__main__':
