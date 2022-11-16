@@ -102,3 +102,10 @@ def value_to_str_with_wall(b: List[List[float]], grid: List[List[str]]) -> str:
 
 def dir_to_str(b: List[List[str]]) -> str:
     return '\n'.join([''.join([f"|{e.rjust(3, ' ')}|" for e in row]) for row in b])
+
+
+def dir_to_str_with_grid(b: List[List[str]], grid: List[List[str]]) -> str:
+    return '\n'.join([''.join(
+        [f"|{(e if grid[r][c] in ['_', 'S'] else ('#' if grid[r][c] == '#' else 'x')).center(3, ' ')}|" for c, e in
+         enumerate(row)])
+        for r, row in enumerate(b)])
