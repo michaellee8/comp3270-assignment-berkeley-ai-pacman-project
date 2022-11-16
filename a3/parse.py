@@ -46,7 +46,7 @@ def parse_problem(file_path: str) -> Problem:
                 ret.living_reward = float(line.removeprefix('livingReward: '))
                 continue
             if line.startswith('iterations: '):
-                ret.iterations = float(line.removeprefix('iterations: '))
+                ret.iterations = int(line.removeprefix('iterations: '))
                 continue
             if line.startswith('grid:'):
                 reset_board_parser()
@@ -91,7 +91,13 @@ def grid_to_str_with_player_pos(b: List[List[str]], pos: Tuple[int, int]) -> str
 
 
 def value_to_str(b: List[List[float]]) -> str:
-    return '\n'.join([''.join([f"|{str(e).rjust(7, ' ')}|" for e in row]) for row in b])
+    return '\n'.join([''.join([f"|{e:7.2f}|" for e in row]) for row in b])
+
+
+def value_to_str_with_wall(b: List[List[float]], grid: List[List[str]]) -> str:
+    return '\n'.join(
+        [''.join([f"|{e:7.2f}|" if grid[r][c] != '#' else '| ##### |' for c, e in enumerate(row)]) for r, row in
+         enumerate(b)])
 
 
 def dir_to_str(b: List[List[str]]) -> str:
