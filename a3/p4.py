@@ -1,6 +1,11 @@
 """
 Analysis:
-- My approach here is basically let the agent run the game using he
+- My approach here is basically let the agent run the game using random moves
+  and let it learn its way to the best q_values, and then use mean squared error
+  to see if we have achieved converge yet.
+- Interestingly the agent seems to prefer hitting the bad exit and exit early for
+  unknown reason, and therefore unable to attain the optimal policy as discussed in the
+  problem set.
 """
 
 import sys, grader, parse
