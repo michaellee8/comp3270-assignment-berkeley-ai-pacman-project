@@ -1,3 +1,8 @@
+"""
+Analysis:
+- My approach here is basically let the agent run the game using he
+"""
+
 import sys, grader, parse
 
 from parse import Problem
@@ -68,18 +73,92 @@ def get_dir_from_intended(d: str, n: float) -> str:
     return random.choices(population=dm[d], weights=[1 - n * 2, n, n])[0]
 
 
+possible_directions = ['N', 'S', 'W', 'E']
+
+
+def get_intended_dir() -> str:
+    return random.choices(population=possible_directions)[0]
+
+
+def mse_q_values(old_q_values: List[List[Dict[str, float]]], new_q_values: List[List[Dict[str, float]]],
+                 grid: List[List[str]]) -> float:
+    n_rows = len(old_q_values)
+    n_cols = len(old_q_values[0])
+    sq_sum = 0.0
+    count = 0
+    for r in range(n_rows):
+        for c in range(n_cols):
+            if is_float(grid[r][c]):
+                count += 1
+                direction = 'exit'
+                sq_sum += (old_q_values[r][c][direction] - new_q_values[r][c][direction]) ** 2
+                continue
+            for direction in possible_directions:
+                count += 1
+                sq_sum += (old_q_values[r][c][direction] - new_q_values[r][c][direction]) ** 2
+    return sq_sum / count
+
+
 def main():
     problem = parse.parse_problem('test_cases/p3/2.prob')
-    possible_directions = ['N', 'S', 'W', 'E']
     n_rows = len(problem.grid)
     n_cols = len(problem.grid[0])
     grid = [[e for e in row] for row in problem.grid]
-    q_values = [[{'N': 0.0, 'S': 0.0, 'W': 0.0, 'E': 0.0} for e in row] for row in grid]
-    decay_factor = 0.5
+    q_values = [[{'N': 0.0, 'S': 0.0, 'W': 0.0, 'E': 0.0, 'exit': 0.0} for e in row] for row in grid]
+    decay_factor = 0.0001
+    start_pos = (0, 0)
+    for r in range(n_rows):
+        for c in range(n_cols):
+            if grid[r][c] == 'S':
+                start_pos = (r, c)
     while True:
         new_q_values = deepcopy(q_values)
-        while True:
+        player_pos = start_pos
 
+        # Loop until we are in an exit
+        while not is_float(grid[player_pos[0]][player_pos[1]]):
+            intended_dir = get_intended_dir()
+            actual_dir = get_dir_from_intended(intended_dir, problem.noise)
+            new_player_pos = execute_dir(grid, player_pos, actual_dir)
+            old_player_pos = player_pos
+            reward = problem.living_reward
+            new_q_values[old_player_pos[0]][old_player_pos[1]][intended_dir] = \
+                (1 - decay_factor) * \
+                new_q_values[old_player_pos[0]][
+                    old_player_pos[1]][intended_dir] + decay_factor * (
+                        reward + problem.discount *
+                        max({k: v for (k, v) in new_q_values[new_player_pos[0]][new_player_pos[1]].items() if
+                             k != 'exit'}.values())
+                )
+            player_pos = new_player_pos
+
+        # Now, update exit reward
+        reward = float(grid[player_pos[0]][player_pos[1]])
+        intended_dir = 'exit'
+
+        new_q_values[player_pos[0]][player_pos[1]][intended_dir] = \
+            (1 - decay_factor) * \
+            new_q_values[player_pos[0]][
+                player_pos[1]][intended_dir] + decay_factor * reward
+
+        print(f"mse: {mse_q_values(q_values, new_q_values, grid)}")
+        if mse_q_values(q_values, new_q_values, grid) <= 0.00000000000001:
+            # We have learnt into a good solution, let's break the learning loop
+            break
+
+        q_values = new_q_values
+
+    # print the result policy
+    print(
+        [
+            [
+                max({k: v for (k, v) in e.items() if
+                     (k == 'exit' and is_float(grid[r][c]) or k != 'exit' and not is_float(grid[r][c]))}.items(),
+                    key=lambda p: p[1])[0]
+                for c, e in enumerate(row)
+            ] for r, row in enumerate(q_values)
+        ]
+    )
 
 
 if __name__ == '__main__':
