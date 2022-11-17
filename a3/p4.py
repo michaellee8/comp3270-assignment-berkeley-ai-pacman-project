@@ -111,6 +111,7 @@ def main():
     grid = [[e for e in row] for row in problem.grid]
     q_values = [[{'N': 0.0, 'S': 0.0, 'W': 0.0, 'E': 0.0, 'exit': 0.0} for e in row] for row in grid]
     decay_factor = 0.0001
+    explore_randomness = 0.15
     start_pos = (0, 0)
     for r in range(n_rows):
         for c in range(n_cols):
@@ -122,7 +123,10 @@ def main():
 
         # Loop until we are in an exit
         while not is_float(grid[player_pos[0]][player_pos[1]]):
-            intended_dir = get_intended_dir()
+            intended_dir = get_dir_from_intended(
+                max({k: v for (k, v) in q_values[player_pos[0]][player_pos[1]].items() if
+                     (k != 'exit')}.items(),
+                    key=lambda p: p[1])[0], explore_randomness)
             actual_dir = get_dir_from_intended(intended_dir, problem.noise)
             new_player_pos = execute_dir(grid, player_pos, actual_dir)
             old_player_pos = player_pos
