@@ -372,20 +372,20 @@ class ParticleFilter(InferenceModule):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        weightedDistribution = self.getBeliefDistribution()
-        for pos in weightedDistribution:
-            weightedDistribution[pos] = weightedDistribution[pos] * self.getObservationProb(
+        weighted_distribution = self.getBeliefDistribution()
+        for pos in weighted_distribution:
+            weighted_distribution[pos] = weighted_distribution[pos] * self.getObservationProb(
                 observation,
                 gameState.getPacmanPosition(),
                 pos,
                 self.getJailPosition()
             )
-        if weightedDistribution.total() == 0.0:
+        if weighted_distribution.total() == 0.0:
             self.initializeUniformly(gameState)
         else:
             self.particles = []
             for _ in range(self.numParticles):
-                self.particles.append(weightedDistribution.sample())
+                self.particles.append(weighted_distribution.sample())
 
     def elapseTime(self, gameState):
         """
@@ -434,6 +434,12 @@ class JointParticleFilter(ParticleFilter):
         self.legalPositions = legalPositions
         self.initializeUniformly(gameState)
 
+    def prod_helper(self, li):
+        ret = 1
+        for i in li:
+            ret *= i
+        return ret
+
     def initializeUniformly(self, gameState):
         """
         Initialize particles to be consistent with a uniform prior. Particles
@@ -478,7 +484,26 @@ class JointParticleFilter(ParticleFilter):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        weighted_distribution = self.getBeliefDistribution()
+        for joint_pos in weighted_distribution:
+            weighted_distribution[joint_pos] = weighted_distribution[joint_pos] * self.prod_helper(
+                [
+                    self.getObservationProb(
+                        observation[i],
+                        gameState.getPacmanPosition(),
+                        pos,
+                        self.getJailPosition(i)
+                    )
+                    for i, pos in enumerate(joint_pos)
+                ]
+            )
+
+        if weighted_distribution.total() == 0.0:
+            self.initializeUniformly(gameState)
+        else:
+            self.particles = []
+            for _ in range(self.numParticles):
+                self.particles.append(weighted_distribution.sample())
 
     def elapseTime(self, gameState):
         """
@@ -496,6 +521,22 @@ class JointParticleFilter(ParticleFilter):
             """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
+
+    # Copied from ParticleFilter
+    def getBeliefDistribution(self):
+        """
+        Return the agent's current belief state, a distribution over ghost
+        locations conditioned on all evidence and time passage. This method
+        essentially converts a list of particles into a belief distribution.
+
+        This function should return a normalized distribution.
+        """
+        "*** YOUR CODE HERE ***"
+        distribution = DiscreteDistribution()
+        for particle in self.particles:
+            distribution[particle] += 1
+        distribution.normalize()
+        return distribution
 
 
 # One JointInference module is shared globally across instances of MarginalInference
