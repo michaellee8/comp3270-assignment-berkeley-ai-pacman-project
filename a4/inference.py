@@ -393,15 +393,12 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        old_distribution = self.getBeliefDistribution()
-        new_distribution = DiscreteDistribution()
-        for old_pos in old_distribution:
-            new_pos_dist = self.getPositionDistribution(gameState, old_pos)
-            for new_pos in new_pos_dist:
-                new_distribution[new_pos] += old_distribution[old_pos] * new_pos_dist[new_pos]
-        self.particles = []
-        for _ in range(self.numParticles):
-            self.particles.append(new_distribution.sample())
+
+        @lru_cache(maxsize=None)
+        def getCachedPositionDistribution(old_pos):
+            return self.getPositionDistribution(gameState, old_pos)
+
+        self.particles = [getCachedPositionDistribution(particle).sample() for particle in self.particles]
 
     def getBeliefDistribution(self):
         """
