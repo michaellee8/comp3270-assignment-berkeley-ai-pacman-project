@@ -17,6 +17,7 @@ import math
 import random
 import busters
 import game
+from functools import lru_cache
 
 from util import manhattanDistance, raiseNotDefined
 
@@ -295,10 +296,10 @@ class ExactInference(InferenceModule):
         position is known.
         """
         # Using the formula in page 41
-        for position in self.allPositions:
-            self.beliefs[position] = self.beliefs[position] * self.getObservationProb(observation,
-                                                                                      gameState.getPacmanPosition(),
-                                                                                      position, self.getJailPosition())
+        for pos in self.allPositions:
+            self.beliefs[pos] = self.beliefs[pos] * self.getObservationProb(observation,
+                                                                            gameState.getPacmanPosition(),
+                                                                            pos, self.getJailPosition())
         self.beliefs.normalize()
 
     def elapseTime(self, gameState):
@@ -310,8 +311,26 @@ class ExactInference(InferenceModule):
         Pacman's current position. However, this is not a problem, as Pacman's
         current position is known.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        # Using formula in page 38
+
+        @lru_cache(maxsize=None)
+        def getCachedPositionDistribution(old_pos):
+            return self.getPositionDistribution(gameState, old_pos)
+
+        old_beliefs = self.beliefs.copy()
+
+        # Tried an approach based on looping old_pos, won't work
+        for pos in self.legalPositions:
+            self.beliefs[pos] = 0.0
+        for pos in self.allPositions:
+            if old_beliefs[pos] == 0.0:
+                continue
+            pos_distribution = getCachedPositionDistribution(pos)
+            for new_pos in pos_distribution:
+                if pos_distribution[new_pos] == 0.0:
+                    continue
+                self.beliefs[new_pos] = pos_distribution[new_pos] * old_beliefs[pos]
 
     def getBeliefDistribution(self):
         return self.beliefs
