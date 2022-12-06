@@ -510,17 +510,15 @@ class JointParticleFilter(ParticleFilter):
         Sample each particle's next state based on its current state and the
         gameState.
         """
-        newParticles = []
-        for oldParticle in self.particles:
-            newParticle = list(oldParticle)  # A list of ghost positions
 
-            # now loop through and update each entry in newParticle...
-            "*** YOUR CODE HERE ***"
-            raiseNotDefined()
+        @lru_cache(maxsize=None)
+        def getCachedPositionDistribution(old_pos, ghost_index):
+            return self.getPositionDistribution(gameState, old_pos, ghost_index, self.ghostAgents[ghost_index])
 
-            """*** END YOUR CODE HERE ***"""
-            newParticles.append(tuple(newParticle))
-        self.particles = newParticles
+        self.particles = [
+            [getCachedPositionDistribution(pos, i).sample() for i, pos in enumerate(particle)]
+            for particle in self.particles
+        ]
 
     # Copied from ParticleFilter
     def getBeliefDistribution(self):
