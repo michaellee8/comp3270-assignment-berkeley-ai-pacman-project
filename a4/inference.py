@@ -321,16 +321,14 @@ class ExactInference(InferenceModule):
         old_beliefs = self.beliefs.copy()
 
         # Tried an approach based on looping old_pos, won't work
-        for pos in self.legalPositions:
-            self.beliefs[pos] = 0.0
-        for pos in self.allPositions:
-            if old_beliefs[pos] == 0.0:
-                continue
-            pos_distribution = getCachedPositionDistribution(pos)
-            for new_pos in pos_distribution:
-                if pos_distribution[new_pos] == 0.0:
-                    continue
-                self.beliefs[new_pos] = pos_distribution[new_pos] * old_beliefs[pos]
+        # Now this is O(n^2) stuffs, not optimal.
+        for new_pos in self.allPositions:
+            new_belief = 0.0
+            for old_pos in self.allPositions:
+                new_belief += getCachedPositionDistribution(old_pos)[new_pos] * old_beliefs[old_pos]
+            self.beliefs[new_pos] = new_belief
+
+        self.beliefs.normalize()
 
     def getBeliefDistribution(self):
         return self.beliefs
