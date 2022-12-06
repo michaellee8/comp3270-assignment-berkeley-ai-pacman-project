@@ -25,6 +25,7 @@ class DiscreteDistribution(dict):
     A DiscreteDistribution models belief distributions and weight distributions
     over a finite set of discrete keys.
     """
+
     def __getitem__(self, key):
         self.setdefault(key, 0)
         return dict.__getitem__(self, key)
@@ -75,7 +76,11 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        sum = 0.0
+        for k in self:
+            sum += self[k]
+        for k in self:
+            self[k] = self[k] / sum
 
     def sample(self):
         """
@@ -99,13 +104,14 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        return random.choices(list(self.keys()), weights=list(self.values()), k=1)[0]
 
 
 class InferenceModule:
     """
     An inference module tracks a belief distribution over a ghost's location.
     """
+
     ############################################
     # Useful methods for all inference modules #
     ############################################
@@ -135,7 +141,7 @@ class InferenceModule:
             dist[jail] = 1.0
             return dist
         pacmanSuccessorStates = game.Actions.getLegalNeighbors(pacmanPosition, \
-                gameState.getWalls())  # Positions Pacman can move to
+                                                               gameState.getWalls())  # Positions Pacman can move to
         if ghostPosition in pacmanSuccessorStates:  # Ghost could get caught
             mult = 1.0 / float(len(pacmanSuccessorStates))
             dist[jail] = mult
@@ -251,6 +257,7 @@ class ExactInference(InferenceModule):
     The exact dynamic inference module should use forward algorithm updates to
     compute the exact belief function at each time step.
     """
+
     def initializeUniformly(self, gameState):
         """
         Begin with a uniform distribution over legal ghost positions (i.e., not
@@ -301,6 +308,7 @@ class ParticleFilter(InferenceModule):
     """
     A particle filter for approximately tracking a single ghost.
     """
+
     def __init__(self, ghostAgent, numParticles=300):
         InferenceModule.__init__(self, ghostAgent)
         self.setNumParticles(numParticles)
@@ -360,6 +368,7 @@ class JointParticleFilter(ParticleFilter):
     JointParticleFilter tracks a joint distribution over tuples of all ghost
     positions.
     """
+
     def __init__(self, numParticles=600):
         self.setNumParticles(numParticles)
 
@@ -442,6 +451,7 @@ class MarginalInference(InferenceModule):
     A wrapper around the JointInference module that returns marginal beliefs
     about ghosts.
     """
+
     def initializeUniformly(self, gameState):
         """
         Set the belief state to an initial, prior value.
