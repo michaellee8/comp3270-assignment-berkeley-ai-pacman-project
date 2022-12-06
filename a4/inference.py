@@ -511,12 +511,12 @@ class JointParticleFilter(ParticleFilter):
         gameState.
         """
 
-        @lru_cache(maxsize=None)
-        def getCachedPositionDistribution(old_pos, ghost_index):
-            return self.getPositionDistribution(gameState, old_pos, ghost_index, self.ghostAgents[ghost_index])
+        @lru_cache(maxsize=1024*1024)
+        def getCachedPositionDistribution(old_pos_all, ghost_index):
+            return self.getPositionDistribution(gameState, old_pos_all, ghost_index, self.ghostAgents[ghost_index])
 
         self.particles = [
-            [getCachedPositionDistribution(pos, i).sample() for i, pos in enumerate(particle)]
+            tuple([getCachedPositionDistribution(particle, i).sample() for i, pos in enumerate(particle)])
             for particle in self.particles
         ]
 
