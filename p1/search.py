@@ -19,6 +19,7 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -70,7 +71,28 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s, s, w, s, w, w, s, w]
+    return [s, s, w, s, w, w, s, w]
+
+
+def genericSearch(problem, ds):
+    """
+    Generic search code for any data structure.
+    :param problem:
+    :param ds:
+    :return: list
+    """
+    ds.push((problem.getStartState(), []))
+    visited = {problem.getStartState()}
+    while not ds.isEmpty():
+        current_state, current_path = ds.pop()
+        if problem.isGoalState(current_state):
+            return current_path
+        visited.add(current_state)
+        successors = problem.getSuccessors(current_state)
+        for successor_state, successor_direction, successor_cost in successors:
+            if successor_state not in visited:
+                ds.push((successor_state, current_path + [successor_direction]))
+
 
 def depthFirstSearch(problem: SearchProblem):
     """
@@ -87,17 +109,23 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    ds = util.Stack()
+    return genericSearch(problem, ds)
+
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    ds = util.Queue()
+    return genericSearch(problem, ds)
+
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    ds = util.PriorityQueueWithFunction(lambda e: problem.getCostOfActions(e[1]))
+    return genericSearch(problem, ds)
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -106,10 +134,12 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    ds = util.PriorityQueueWithFunction(lambda e: heuristic(e[0], problem))
+    return genericSearch(problem, ds)
 
 
 # Abbreviations
