@@ -74,12 +74,9 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
-def genericSearch(problem, ds):
+def genericSearch(problem, ds, add_visited_at_expand_time=False):
     """
     Generic search code for any data structure.
-    :param problem:
-    :param ds:
-    :return: list
     """
     ds.push((problem.getStartState(), []))
     visited = {problem.getStartState()}
@@ -87,10 +84,13 @@ def genericSearch(problem, ds):
         current_state, current_path = ds.pop()
         if problem.isGoalState(current_state):
             return current_path
-        visited.add(current_state)
+        if add_visited_at_expand_time:
+            visited.add(current_state)
         successors = problem.getSuccessors(current_state)
         for successor_state, successor_direction, successor_cost in successors:
             if successor_state not in visited:
+                if not add_visited_at_expand_time:
+                    visited.add(successor_state)
                 ds.push((successor_state, current_path + [successor_direction]))
 
 
@@ -110,7 +110,7 @@ def depthFirstSearch(problem: SearchProblem):
     """
     "*** YOUR CODE HERE ***"
     ds = util.Stack()
-    return genericSearch(problem, ds)
+    return genericSearch(problem, ds, add_visited_at_expand_time=True)
 
 
 def breadthFirstSearch(problem: SearchProblem):
