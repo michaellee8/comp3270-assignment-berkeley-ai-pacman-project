@@ -74,12 +74,12 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
-def genericSearch(problem, ds, add_visited_at_expand_time=False):
+def genericSearch(problem, ds, add_visited_at_expand_time=False, cost):
     """
     Generic search code for any data structure.
     """
     ds.push((problem.getStartState(), []))
-    visited = {problem.getStartState()}
+    visited = set()
     while not ds.isEmpty():
         current_state, current_path = ds.pop()
         if problem.isGoalState(current_state):
