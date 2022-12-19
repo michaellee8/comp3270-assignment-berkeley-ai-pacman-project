@@ -74,7 +74,7 @@ def tinyMazeSearch(problem):
     return [s, s, w, s, w, w, s, w]
 
 
-def genericSearch(problem, ds, add_visited_at_expand_time=False, cost):
+def genericSearch(problem, ds, add_visited_at_expand_time=False, cost_func=None):
     """
     Generic search code for any data structure.
     """
